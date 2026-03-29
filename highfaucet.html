@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HighFaucet — Learn Everything, Deeply</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --off-black: #111111;
+    --dark: #141414;
+    --card-dark: #1a1a1a;
+    --yellow: #f5e642;
+    --yellow-dim: #d4c738;
+    --white: #f0ede6;
+    --white-dim: #9e9b94;
+    --pink: #ff6b9d;
+    --blue: #4f8bff;
+    --green: #42f5a8;
+    --orange: #ff8c42;
+    --purple: #b06bff;
+    --red: #ff4242;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 12px;
+    height: 12px;
+    background: var(--yellow);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+    mix-blend-mode: difference;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    color: var(--white);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--yellow); }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--yellow); }
+
+  .nav-cta {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--yellow);
+    color: var(--black);
+    border: none;
+    padding: 10px 20px;
+    cursor: none;
+    transition: transform 0.15s, background 0.15s;
+  }
+  .nav-cta:hover { background: var(--white); transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 48px 80px;
+    position: relative;
+    overflow: hidden;
+    background: var(--black);
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 70% 30%, rgba(245,230,66,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(79,139,255,0.05) 0%, transparent 60%);
+  }
+
+  .hero-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--yellow);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-tag::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--yellow);
+  }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(58px, 9vw, 128px);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    color: var(--white);
+    max-width: 900px;
+    margin-bottom: 40px;
+  }
+  .hero-title .accent { color: var(--yellow); }
+  .hero-title .outline {
+    -webkit-text-stroke: 2px var(--white);
+    color: transparent;
+  }
+
+  .hero-sub {
+    font-size: 17px;
+    font-weight: 300;
+    color: var(--white-dim);
+    max-width: 420px;
+    line-height: 1.7;
+    margin-bottom: 48px;
+  }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .btn-primary {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--yellow);
+    color: var(--black);
+    border: none;
+    padding: 16px 32px;
+    cursor: none;
+    display: inline-block;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(245,230,66,0.3);
+  }
+
+  .btn-ghost {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+  }
+  .btn-ghost:hover { color: var(--white); }
+
+  .hero-stats {
+    position: absolute;
+    right: 48px;
+    bottom: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    text-align: right;
+  }
+  .hero-stat-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 32px;
+    color: var(--white);
+    line-height: 1;
+  }
+  .hero-stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    margin-top: 4px;
+  }
+
+  /* MARQUEE */
+  .marquee-section {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 18px 0;
+    overflow: hidden;
+    background: var(--off-black);
+  }
+  .marquee-track {
+    display: flex;
+    gap: 0;
+    animation: marquee 22s linear infinite;
+    white-space: nowrap;
+  }
+  .marquee-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 40px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    flex-shrink: 0;
+  }
+  .marquee-dot { color: var(--yellow); font-size: 18px; }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* SECTION COMMON */
+  section { padding: 120px 48px; }
+
+  .section-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--yellow);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-tag::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--yellow);
+    display: block;
+  }
+
+  /* WHY SECTION - light */
+  .why-section {
+    background: var(--white);
+    color: var(--black);
+  }
+  .why-section .section-tag { color: var(--black); }
+  .why-section .section-tag::before { background: var(--black); }
+
+  .why-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+    margin-bottom: 80px;
+  }
+  .why-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(36px, 5vw, 64px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--black);
+  }
+  .why-body {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #444;
+    padding-top: 12px;
+    font-weight: 300;
+  }
+
+  .why-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+  .why-card {
+    background: var(--black);
+    color: var(--white);
+    padding: 40px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .why-card:hover { transform: translateY(-4px); }
+  .why-card-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 64px;
+    color: rgba(255,255,255,0.06);
+    line-height: 1;
+    position: absolute;
+    top: 16px;
+    right: 20px;
+  }
+  .why-card-icon {
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+  .why-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+  .why-card p {
+    font-size: 14px;
+    color: var(--white-dim);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+  .why-card.accent-yellow { background: var(--yellow); color: var(--black); }
+  .why-card.accent-yellow p { color: rgba(0,0,0,0.6); }
+  .why-card.accent-yellow .why-card-num { color: rgba(0,0,0,0.06); }
+
+  /* TOPICS SECTION */
+  .topics-section { background: var(--black); }
+
+  .topics-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 60px;
+  }
+  .topics-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(36px, 5vw, 64px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+  }
+  .topics-title .outline {
+    -webkit-text-stroke: 1.5px var(--white-dim);
+    color: transparent;
+  }
+
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+  }
+
+  .topic-card {
+    padding: 32px 28px;
+    position: relative;
+    overflow: hidden;
+    cursor: none;
+    transition: transform 0.2s;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .topic-card:hover { transform: scale(1.02); z-index: 2; }
+  .topic-card-bg {
+    position: absolute;
+    inset: 0;
+    opacity: 0.15;
+    transition: opacity 0.2s;
+  }
+  .topic-card:hover .topic-card-bg { opacity: 0.25; }
+
+  .tc-zk { background: #1a1020; }
+  .tc-zk .topic-card-bg { background: radial-gradient(circle at 30% 70%, var(--purple), transparent 70%); }
+  .tc-zk .topic-pill { background: var(--purple); }
+
+  .tc-crypto { background: #0a1a14; }
+  .tc-crypto .topic-card-bg { background: radial-gradient(circle at 70% 30%, var(--green), transparent 70%); }
+  .tc-crypto .topic-pill { background: var(--green); color: var(--black); }
+
+  .tc-os { background: #1a100a; }
+  .tc-os .topic-card-bg { background: radial-gradient(circle at 50% 50%, var(--orange), transparent 70%); }
+  .tc-os .topic-pill { background: var(--orange); color: var(--black); }
+
+  .tc-ai { background: #0a1020; }
+  .tc-ai .topic-card-bg { background: radial-gradient(circle at 30% 30%, var(--blue), transparent 70%); }
+  .tc-ai .topic-pill { background: var(--blue); }
+
+  .tc-net { background: #1a1a0a; }
+  .tc-net .topic-card-bg { background: radial-gradient(circle at 70% 70%, var(--yellow), transparent 70%); }
+  .tc-net .topic-pill { background: var(--yellow); color: var(--black); }
+
+  .tc-qc { background: #1a0a14; }
+  .tc-qc .topic-card-bg { background: radial-gradient(circle at 50% 20%, var(--pink), transparent 70%); }
+  .tc-qc .topic-pill { background: var(--pink); color: var(--black); }
+
+  .tc-fv { background: #0d1a1a; }
+  .tc-fv .topic-card-bg { background: radial-gradient(circle at 20% 80%, var(--green), transparent 70%); }
+  .tc-fv .topic-pill { background: var(--green); color: var(--black); }
+
+  .tc-cat { background: #14100a; }
+  .tc-cat .topic-card-bg { background: radial-gradient(circle at 80% 50%, var(--orange), transparent 70%); }
+  .tc-cat .topic-pill { background: var(--orange); color: var(--black); }
+
+  .topic-pill {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    margin-bottom: 16px;
+    color: var(--white);
+    width: fit-content;
+  }
+  .topic-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .topic-card p {
+    font-size: 13px;
+    color: var(--white-dim);
+    line-height: 1.6;
+    font-weight: 300;
+    position: relative;
+  }
+  .topic-lessons {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.05em;
+  }
+
+  /* HOW IT WORKS */
+  .how-section {
+    background: var(--yellow);
+    color: var(--black);
+  }
+
+  .how-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(36px, 5vw, 64px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 80px;
+    max-width: 600px;
+  }
+
+  .how-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+  }
+  .how-step {
+    background: var(--black);
+    color: var(--white);
+    padding: 40px 32px;
+  }
+  .how-step-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 52px;
+    color: var(--yellow);
+    line-height: 1;
+    margin-bottom: 24px;
+  }
+  .how-step h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+  .how-step p {
+    font-size: 13px;
+    color: var(--white-dim);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* LESSON PREVIEW */
+  .preview-section { background: var(--dark); }
+
+  .preview-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 48px;
+  }
+  .preview-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(32px, 4vw, 52px);
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+  }
+
+  .lesson-mockup {
+    background: var(--card-dark);
+    border: 1px solid rgba(255,255,255,0.06);
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 480px;
+    overflow: hidden;
+  }
+
+  .lesson-sidebar {
+    border-right: 1px solid rgba(255,255,255,0.06);
+    padding: 32px 0;
+  }
+  .lesson-topic-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 0 24px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .lesson-chapter {
+    padding: 8px 24px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    margin-top: 12px;
+  }
+  .lesson-item {
+    padding: 10px 24px;
+    font-size: 13px;
+    color: var(--white-dim);
+    cursor: none;
+    transition: background 0.15s, color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .lesson-item:hover { background: rgba(255,255,255,0.04); color: var(--white); }
+  .lesson-item.active { background: rgba(245,230,66,0.08); color: var(--yellow); }
+  .lesson-item.active::before {
+    content: '▶';
+    font-size: 8px;
+  }
+  .lesson-item.done { color: rgba(255,255,255,0.35); text-decoration: line-through; }
+  .lesson-item.done::before { content: '✓'; font-size: 10px; color: var(--green); }
+
+  .lesson-content { padding: 48px 60px; }
+  .lesson-breadcrumb {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    margin-bottom: 24px;
+  }
+  .lesson-content h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  .lesson-content p {
+    font-size: 15px;
+    color: var(--white-dim);
+    line-height: 1.8;
+    margin-bottom: 16px;
+    font-weight: 300;
+  }
+  .lesson-code {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-left: 3px solid var(--yellow);
+    padding: 20px 24px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+    margin: 24px 0;
+    line-height: 1.6;
+  }
+  .lesson-quiz-teaser {
+    margin-top: 32px;
+    background: rgba(245,230,66,0.06);
+    border: 1px solid rgba(245,230,66,0.2);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .quiz-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--yellow);
+    margin-bottom: 4px;
+  }
+  .quiz-q {
+    font-size: 14px;
+    color: var(--white);
+    font-weight: 500;
+  }
+  .quiz-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--yellow);
+    color: var(--black);
+    border: none;
+    padding: 10px 20px;
+    cursor: none;
+    flex-shrink: 0;
+    margin-left: 24px;
+  }
+
+  /* FREE PROMISE */
+  .free-section {
+    background: var(--black);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    text-align: center;
+    padding: 120px 48px;
+  }
+  .free-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(48px, 8vw, 112px);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    margin-bottom: 32px;
+  }
+  .free-title .outline {
+    -webkit-text-stroke: 2px rgba(255,255,255,0.2);
+    color: transparent;
+  }
+  .free-title .yellow { color: var(--yellow); }
+  .free-sub {
+    font-size: 16px;
+    color: var(--white-dim);
+    max-width: 480px;
+    margin: 0 auto 48px;
+    font-weight: 300;
+    line-height: 1.7;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--off-black);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 60px 48px 40px;
+  }
+  .footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 60px;
+  }
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+    color: var(--white);
+  }
+  .footer-logo span { color: var(--yellow); }
+  .footer-tagline {
+    font-size: 13px;
+    color: var(--white-dim);
+    margin-top: 8px;
+    font-weight: 300;
+  }
+  .footer-links {
+    display: flex;
+    gap: 64px;
+  }
+  .footer-col h4 {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    margin-bottom: 16px;
+  }
+  .footer-col ul { list-style: none; }
+  .footer-col li { margin-bottom: 10px; }
+  .footer-col a {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-col a:hover { color: var(--white); }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-copy {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.05em;
+  }
+  .footer-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ANIMATIONS */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .fade-up-delay-1 { transition-delay: 0.1s; }
+  .fade-up-delay-2 { transition-delay: 0.2s; }
+  .fade-up-delay-3 { transition-delay: 0.3s; }
+
+  /* Hero animation */
+  .hero-tag { animation: fadeInUp 0.8s ease 0.2s both; }
+  .hero-title { animation: fadeInUp 0.8s ease 0.35s both; }
+  .hero-sub { animation: fadeInUp 0.8s ease 0.5s both; }
+  .hero-actions { animation: fadeInUp 0.8s ease 0.65s both; }
+  .hero-stats { animation: fadeInUp 0.8s ease 0.8s both; }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">high<span>faucet</span></a>
+  <ul class="nav-links">
+    <li><a href="#topics">Tracks</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#preview">Preview</a></li>
+  </ul>
+  <button class="nav-cta">Start Learning</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-tag">Deep learning for serious minds</div>
+  <h1 class="hero-title">
+    Learn<br>
+    <span class="outline">everything</span><br>
+    <span class="accent">deeply.</span>
+  </h1>
+  <p class="hero-sub">Structured, bite-sized lessons on the topics no one else covers well. From ZK proofs to category theory — go further than surface level.</p>
+  <div class="hero-actions">
+    <a href="#topics" class="btn-primary">Explore Tracks</a>
+    <a href="#preview" class="btn-ghost">See a lesson →</a>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="hero-stat-num">40+</div>
+      <div class="hero-stat-label">Topics</div>
+    </div>
+    <div>
+      <div class="hero-stat-num">500+</div>
+      <div class="hero-stat-label">Lessons</div>
+    </div>
+    <div>
+      <div class="hero-stat-num">Free</div>
+      <div class="hero-stat-label">Always</div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-section">
+  <div class="marquee-track">
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Zero-Knowledge Proofs</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Cryptography</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Operating Systems</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Category Theory</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> AI Internals</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Quantum Computing</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Formal Verification</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Networking</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Rust Lang</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Compilers</div>
+    <!-- duplicate for seamless loop -->
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Zero-Knowledge Proofs</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Cryptography</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Operating Systems</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Category Theory</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> AI Internals</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Quantum Computing</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Formal Verification</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Networking</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Rust Lang</div>
+    <div class="marquee-item"><span class="marquee-dot">◆</span> Compilers</div>
+  </div>
+</div>
+
+<!-- WHY -->
+<section class="why-section fade-up">
+  <div class="section-tag">Why HighFaucet</div>
+  <div class="why-header">
+    <h2 class="why-title">Built for people who actually want to know.</h2>
+    <p class="why-body">Most learning platforms stop at the surface. HighFaucet is built for the ones who want to understand how things <em>actually</em> work — from first principles, with no hand-waving.</p>
+  </div>
+  <div class="why-cards">
+    <div class="why-card fade-up fade-up-delay-1">
+      <div class="why-card-num">01</div>
+      <div class="why-card-icon">🔭</div>
+      <h3>Depth first</h3>
+      <p>Every track is built to go deep. We don't stop at definitions. We go until you can derive it yourself.</p>
+    </div>
+    <div class="why-card accent-yellow fade-up fade-up-delay-2">
+      <div class="why-card-num">02</div>
+      <div class="why-card-icon">🗂</div>
+      <h3>Structured paths</h3>
+      <p>Each topic is laid out as a progression — chapters, lessons, quizzes. You always know where you are and what comes next.</p>
+    </div>
+    <div class="why-card fade-up fade-up-delay-3">
+      <div class="why-card-num">03</div>
+      <div class="why-card-icon">🌐</div>
+      <h3>No account needed</h3>
+      <p>Progress saved locally. No email, no subscription, no friction. Just open and learn.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+<section class="topics-section" id="topics">
+  <div class="topics-header">
+    <div>
+      <div class="section-tag">Tracks</div>
+      <h2 class="topics-title">Pick a<br><span class="outline">rabbit hole.</span></h2>
+    </div>
+    <a href="#" class="btn-ghost" style="color: var(--white-dim);">View all tracks →</a>
+  </div>
+  <div class="topics-grid">
+    <div class="topic-card tc-zk fade-up">
+      <div class="topic-card-bg"></div>
+      <div class="topic-lessons">12 lessons</div>
+      <div class="topic-pill">Emerging</div>
+      <h3>Zero-Knowledge Proofs</h3>
+      <p>SNARKs, STARKs, circuits & proof systems — from the math up.</p>
+    </div>
+    <div class="topic-card tc-crypto fade-up fade-up-delay-1">
+      <div class="topic-card-bg"></div>
+      <div class="topic-lessons">18 lessons</div>
+      <div class="topic-pill">Core</div>
+      <h3>Cryptography</h3>
+      <p>Symmetric, asymmetric, hash functions, elliptic curves & more.</p>
+    </div>
+    <div class="topic-card tc-os fade-up fade-up-delay-2">
+      <div class="topic-card-bg"></div>
+      <div class="topic-lessons">24 lessons</div>
+      <div class="topic-pill">Classic</div>
+      <h3>Operating Systems</h3>
+      <p>Processes, memory, file systems, scheduling — how your OS really works.</p>
+    </div>
+    <div class="topic-card tc-ai fade-up fade-up-delay-3">
+      <div class="topic-card-bg"></div>
+      <div class="topic-lessons">20 lessons</div>
+      <div class="topic-pill">Emerging</div>
+      <h3>AI Internals</h3>
+      <p>Transformers, attention, training dynamics — beyond the API call.</p>
+    </div>
+    <div class="topic-card tc-net fade-up">
+      <div class="topic-card-bg"></div>
+      <div class="topic-lessons">16 lessons</div>
+      <div class="topic-pill">Classic</div>
+      <h3>Networking</h3>
+      <p>TCP/IP, DNS, HTTP, TLS — the internet from the wire up.</p>
+    </div>
+    <div class="topic-card tc-qc fade-up fade-up-delay-1">
+      <div class="topic-card-bg"></div>
+      <div class="topic-lessons">14 lessons</div>
+      <div class="topic-pill">Niche</div>
+      <h3>Quantum Computing</h3>
+      <p>Qubits, gates, entanglement, algorithms — serious quantum from scratch.</p>
+    </div>
+    <div class="topic-card tc-fv fade-up fade-up-delay-2">
+      <div class="topic-card-bg"></div>
+      <div class="topic-lessons">10 lessons</div>
+      <div class="topic-pill">Niche</div>
+      <h3>Formal Verification</h3>
+      <p>Coq, Lean, TLA+ — proving software correct, mathematically.</p>
+    </div>
+    <div class="topic-card tc-cat fade-up fade-up-delay-3">
+      <div class="topic-card-bg"></div>
+      <div class="topic-lessons">15 lessons</div>
+      <div class="topic-pill">Niche</div>
+      <h3>Category Theory</h3>
+      <p>Objects, morphisms, functors, monads — the math behind functional programming.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="section-tag" style="color: var(--black);">
+    <span style="width:24px;height:1px;background:var(--black);display:block;"></span>
+    How it works
+  </div>
+  <h2 class="how-title">Learning that doesn't waste your time.</h2>
+  <div class="how-steps">
+    <div class="how-step fade-up">
+      <div class="how-step-num">01</div>
+      <h3>Pick a track</h3>
+      <p>Choose any topic from the library. Each one is self-contained with a clear start-to-finish path.</p>
+    </div>
+    <div class="how-step fade-up fade-up-delay-1">
+      <div class="how-step-num">02</div>
+      <h3>Work through lessons</h3>
+      <p>Short, focused lessons — no fluff. Read, absorb, think. Each one builds on the last.</p>
+    </div>
+    <div class="how-step fade-up fade-up-delay-2">
+      <div class="how-step-num">03</div>
+      <h3>Take the quiz</h3>
+      <p>Each chapter ends with a quiz to solidify your understanding. No tricks, just real comprehension checks.</p>
+    </div>
+    <div class="how-step fade-up fade-up-delay-3">
+      <div class="how-step-num">04</div>
+      <h3>Track progress</h3>
+      <p>Your progress saves automatically. No account needed — it's all local, private, and instant.</p>
+    </div>
+  </div>
+</section>
+
+<!-- LESSON PREVIEW -->
+<section class="preview-section" id="preview">
+  <div class="preview-header">
+    <div>
+      <div class="section-tag">Lesson Preview</div>
+      <h2 class="preview-title">This is what<br>deep looks like.</h2>
+    </div>
+  </div>
+  <div class="lesson-mockup">
+    <div class="lesson-sidebar">
+      <div class="lesson-topic-name">Zero-Knowledge Proofs</div>
+      <div class="lesson-chapter">Chapter 1 — Foundations</div>
+      <div class="lesson-item done">What is a proof?</div>
+      <div class="lesson-item done">Interactive vs non-interactive</div>
+      <div class="lesson-item active">Completeness & soundness</div>
+      <div class="lesson-item">Zero-knowledge property</div>
+      <div class="lesson-item">The simulator argument</div>
+      <div class="lesson-chapter">Chapter 2 — Arithmetic Circuits</div>
+      <div class="lesson-item">R1CS constraints</div>
+      <div class="lesson-item">Witness generation</div>
+      <div class="lesson-item">QAP construction</div>
+    </div>
+    <div class="lesson-content">
+      <div class="lesson-breadcrumb">ZK Proofs → Chapter 1 → Lesson 3</div>
+      <h2>Completeness & Soundness</h2>
+      <p>A proof system is defined by two fundamental properties. <strong style="color:var(--white)">Completeness</strong> guarantees that an honest prover can always convince an honest verifier of a true statement. <strong style="color:var(--white)">Soundness</strong> guarantees that no cheating prover can convince the verifier of a false statement — except with negligible probability.</p>
+      <p>Together, these properties form the backbone of any cryptographic proof system. Without completeness, proofs would fail for legitimate statements. Without soundness, an adversary could fabricate proofs for lies.</p>
+      <div class="lesson-code">
+// Completeness: if x ∈ L, then
+//   Pr[Verify(x, Prove(x, w)) = 1] = 1
+
+// Soundness: if x ∉ L, then for all P*:
+//   Pr[Verify(x, P*(x)) = 1] ≤ ε (negligible)
+      </div>
+      <div class="lesson-quiz-teaser">
+        <div>
+          <div class="quiz-label">Quick check</div>
+          <div class="quiz-q">Which property prevents a cheating prover from proving false statements?</div>
+        </div>
+        <button class="quiz-btn">Answer →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FREE PROMISE -->
+<section class="free-section fade-up">
+  <h2 class="free-title">
+    <span class="outline">Completely</span><br>
+    <span class="yellow">free.</span><br>
+    <span class="outline">Forever.</span>
+  </h2>
+  <p class="free-sub">No subscriptions, no paywalls, no accounts. HighFaucet is and will always be free. Knowledge shouldn't have a cover charge.</p>
+  <a href="#topics" class="btn-primary">Start Learning Now</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo">high<span>faucet</span></div>
+      <div class="footer-tagline">Deep learning for serious minds.</div>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <h4>Tracks</h4>
+        <ul>
+          <li><a href="#">ZK Proofs</a></li>
+          <li><a href="#">Cryptography</a></li>
+          <li><a href="#">AI Internals</a></li>
+          <li><a href="#">Operating Systems</a></li>
+          <li><a href="#">Networking</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>More</h4>
+        <ul>
+          <li><a href="#">Category Theory</a></li>
+          <li><a href="#">Formal Verification</a></li>
+          <li><a href="#">Quantum Computing</a></li>
+          <li><a href="#">Compilers</a></li>
+          <li><a href="#">Rust Lang</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Project</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">Contribute</a></li>
+          <li><a href="#">Suggest a topic</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 HighFaucet. Open source. No rights reserved.</div>
+    <div class="footer-badge">
+      <div class="badge-dot"></div>
+      All systems operational
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+  });
+  document.querySelectorAll('button, a, .topic-card, .lesson-item').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '24px';
+      cursor.style.height = '24px';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '12px';
+      cursor.style.height = '12px';
+    });
+  });
+
+  // Intersection observer for fade-up
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Completeness & Soundness — ZK Proofs — HighFaucet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #0a0a0a;
+  --off-black: #0f0f0f;
+  --dark: #141414;
+  --card: #181818;
+  --border: rgba(255,255,255,0.07);
+  --yellow: #f5e642;
+  --yellow-bg: rgba(245,230,66,0.07);
+  --yellow-border: rgba(245,230,66,0.25);
+  --white: #f0ede6;
+  --muted: #6b6860;
+  --dim: #9e9b94;
+  --green: #42f5a8;
+  --green-bg: rgba(66,245,168,0.07);
+  --red: #ff5c5c;
+  --red-bg: rgba(255,92,92,0.07);
+  --purple: #b06bff;
+  --sidebar-w: 280px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* CURSOR */
+.cursor {
+  position: fixed;
+  width: 10px; height: 10px;
+  background: var(--yellow);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.15s, height 0.15s, background 0.15s;
+  mix-blend-mode: difference;
+}
+.cursor.hover { width: 22px; height: 22px; }
+
+/* TOPBAR */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 52px;
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 200;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--white);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+.logo span { color: var(--yellow); }
+
+.topbar-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+}
+
+.topbar-track {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.progress-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.progress-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+.progress-track {
+  width: 120px;
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 25%;
+  background: var(--yellow);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+.progress-pct {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--yellow);
+}
+
+.toggle-sidebar-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  cursor: none;
+  padding: 6px 10px;
+  font-size: 14px;
+  line-height: 1;
+  transition: border-color 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.toggle-sidebar-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+.toggle-sidebar-btn span {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* LAYOUT */
+.layout {
+  display: flex;
+  padding-top: 52px;
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  position: fixed;
+  top: 52px;
+  left: 0;
+  bottom: 0;
+  background: var(--off-black);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar.collapsed {
+  transform: translateX(calc(-1 * var(--sidebar-w)));
+}
+
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+.sidebar-header {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sidebar-topic-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--purple);
+  background: rgba(176,107,255,0.1);
+  border: 1px solid rgba(176,107,255,0.2);
+  padding: 4px 10px;
+  margin-bottom: 12px;
+}
+.sidebar-topic-pill::before {
+  content: '';
+  width: 5px; height: 5px;
+  background: var(--purple);
+  border-radius: 50%;
+}
+
+.sidebar-topic-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.sidebar-body { padding: 12px 0; flex: 1; }
+
+.chapter-group { margin-bottom: 4px; }
+
+.chapter-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px 6px;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: none;
+  user-select: none;
+}
+.chapter-label:hover { color: var(--dim); }
+.chapter-toggle { font-size: 8px; transition: transform 0.2s; }
+.chapter-label.open .chapter-toggle { transform: rotate(90deg); }
+
+.chapter-lessons { overflow: hidden; }
+
+.lesson-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px 9px 28px;
+  font-size: 13px;
+  color: var(--dim);
+  cursor: none;
+  transition: background 0.15s, color 0.15s;
+  text-decoration: none;
+  position: relative;
+  line-height: 1.3;
+}
+.lesson-nav-item:hover { background: rgba(255,255,255,0.03); color: var(--white); }
+.lesson-nav-item.active {
+  background: var(--yellow-bg);
+  color: var(--yellow);
+  border-right: 2px solid var(--yellow);
+}
+.lesson-nav-item.done { color: rgba(255,255,255,0.25); }
+.lesson-nav-item.done .nav-status { color: var(--green); }
+
+.nav-status {
+  width: 14px;
+  flex-shrink: 0;
+  font-size: 10px;
+  text-align: center;
+  color: var(--muted);
+}
+.nav-status.done-icon { color: var(--green); }
+.nav-status.active-icon { color: var(--yellow); font-size: 7px; }
+
+.nav-lesson-name { flex: 1; }
+
+/* MAIN CONTENT */
+.main {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
+  min-height: calc(100vh - 52px);
+  display: flex;
+  flex-direction: column;
+}
+.main.expanded { margin-left: 0; }
+
+.lesson-area {
+  max-width: 780px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 56px 60px 120px;
+  flex: 1;
+}
+
+/* LESSON HEADER */
+.lesson-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.lesson-chapter-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.lesson-meta-sep { color: var(--muted); font-size: 12px; }
+.lesson-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lesson-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  margin-bottom: 28px;
+}
+
+.lesson-intro {
+  font-size: 17px;
+  font-weight: 300;
+  color: var(--dim);
+  line-height: 1.75;
+  margin-bottom: 48px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid var(--border);
+  font-style: italic;
+}
+
+/* LESSON BODY */
+.lesson-body h2 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  margin: 48px 0 16px;
+  color: var(--white);
+}
+.lesson-body h2:first-child { margin-top: 0; }
+
+.lesson-body p {
+  font-size: 15px;
+  line-height: 1.85;
+  color: rgba(240,237,230,0.8);
+  margin-bottom: 20px;
+  font-weight: 300;
+}
+
+.lesson-body strong {
+  color: var(--white);
+  font-weight: 500;
+}
+
+.lesson-body em {
+  color: var(--dim);
+  font-style: italic;
+}
+
+/* DEFINITION BOX */
+.def-box {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--yellow);
+  background: rgba(255,255,255,0.02);
+  padding: 24px 28px;
+  margin: 28px 0;
+}
+.def-box-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  margin-bottom: 10px;
+}
+.def-box p {
+  margin-bottom: 0 !important;
+  color: var(--white) !important;
+  font-weight: 400 !important;
+}
+
+/* NOTE BOX */
+.note-box {
+  border: 1px solid rgba(66,245,168,0.15);
+  background: rgba(66,245,168,0.04);
+  padding: 20px 24px;
+  margin: 28px 0;
+  display: flex;
+  gap: 14px;
+}
+.note-icon { color: var(--green); font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+.note-box p { margin-bottom: 0 !important; font-size: 14px !important; }
+
+/* CODE BLOCK */
+.code-block {
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-left: 3px solid var(--purple);
+  padding: 24px 28px;
+  margin: 28px 0;
+  overflow-x: auto;
+}
+.code-block-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--purple);
+  margin-bottom: 14px;
+}
+.code-block pre {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  color: rgba(240,237,230,0.75);
+  white-space: pre;
+}
+.code-block .kw { color: var(--purple); }
+.code-block .cm { color: var(--muted); font-style: italic; }
+.code-block .val { color: var(--green); }
+.code-block .hl { color: var(--yellow); }
+
+/* DIVIDER */
+.lesson-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 56px 0;
+}
+
+/* QUIZ SECTION */
+.quiz-section {
+  margin-top: 64px;
+  padding-top: 48px;
+  border-top: 1px solid var(--border);
+}
+
+.quiz-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.quiz-icon {
+  width: 36px; height: 36px;
+  background: var(--yellow-bg);
+  border: 1px solid var(--yellow-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+.quiz-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+.quiz-subtitle {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+  letter-spacing: 0.05em;
+}
+
+.quiz-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 36px;
+  margin-bottom: 20px;
+}
+
+.quiz-q-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.quiz-question {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  margin-bottom: 24px;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quiz-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  cursor: none;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+  width: 100%;
+}
+.quiz-option:hover:not(.answered) {
+  border-color: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.04);
+}
+.quiz-option.correct {
+  border-color: var(--green);
+  background: var(--green-bg);
+}
+.quiz-option.incorrect {
+  border-color: var(--red);
+  background: var(--red-bg);
+}
+.quiz-option.dimmed {
+  opacity: 0.35;
+}
+
+.opt-letter {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  flex-shrink: 0;
+  width: 18px;
+  margin-top: 1px;
+  transition: color 0.15s;
+}
+.quiz-option.correct .opt-letter { color: var(--green); }
+.quiz-option.incorrect .opt-letter { color: var(--red); }
+
+.opt-text {
+  font-size: 14px;
+  color: rgba(240,237,230,0.8);
+  line-height: 1.5;
+}
+.quiz-option.correct .opt-text { color: var(--white); }
+
+.quiz-result-icon {
+  margin-left: auto;
+  font-size: 14px;
+  flex-shrink: 0;
+  align-self: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.quiz-option.correct .quiz-result-icon,
+.quiz-option.incorrect .quiz-result-icon { opacity: 1; }
+
+/* EXPLANATION */
+.quiz-explanation {
+  margin-top: 16px;
+  padding: 20px 20px 20px 24px;
+  border-left: 3px solid var(--green);
+  background: rgba(66,245,168,0.04);
+  font-size: 14px;
+  color: rgba(240,237,230,0.75);
+  line-height: 1.7;
+  display: none;
+}
+.quiz-explanation.visible { display: block; animation: slideDown 0.3s ease; }
+.quiz-explanation strong { color: var(--green); }
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* LESSON NAV FOOTER */
+.lesson-nav-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 80px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+
+.nav-footer-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: none;
+  text-decoration: none;
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  background: none;
+  transition: border-color 0.2s, background 0.2s;
+  min-width: 200px;
+}
+.nav-footer-btn:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.02); }
+.nav-footer-btn.primary { background: var(--yellow); border-color: var(--yellow); }
+.nav-footer-btn.primary:hover { background: #e8d93c; }
+
+.nfb-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.nav-footer-btn.primary .nfb-label { color: rgba(0,0,0,0.5); }
+
+.nfb-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--white);
+}
+.nav-footer-btn.primary .nfb-title { color: var(--black); }
+
+/* SCROLL PROGRESS LINE */
+.scroll-progress {
+  position: fixed;
+  top: 52px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255,255,255,0.05);
+  z-index: 201;
+}
+.scroll-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--yellow);
+  transition: width 0.1s linear;
+}
+
+/* COMPLETE BANNER */
+.complete-banner {
+  display: none;
+  margin-top: 48px;
+  background: rgba(66,245,168,0.06);
+  border: 1px solid rgba(66,245,168,0.2);
+  padding: 28px 32px;
+  align-items: center;
+  gap: 20px;
+}
+.complete-banner.show {
+  display: flex;
+  animation: slideDown 0.4s ease;
+}
+.complete-banner-icon { font-size: 28px; }
+.complete-banner-text h3 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+.complete-banner-text p {
+  font-size: 13px;
+  color: var(--dim);
+  margin: 0;
+}
+
+/* Animations */
+.lesson-area { animation: fadeIn 0.5s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+
+<!-- SCROLL PROGRESS -->
+<div class="scroll-progress">
+  <div class="scroll-progress-fill" id="scrollFill"></div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="highfaucet.html" class="logo">high<span>faucet</span></a>
+    <div class="topbar-sep"></div>
+    <div class="topbar-track">Zero-Knowledge Proofs</div>
+  </div>
+  <div class="topbar-right">
+    <div class="progress-bar-wrap">
+      <span class="progress-label">Progress</span>
+      <div class="progress-track">
+        <div class="progress-fill" id="trackProgress"></div>
+      </div>
+      <span class="progress-pct" id="progressPct">25%</span>
+    </div>
+    <button class="toggle-sidebar-btn" id="sidebarToggle">
+      ☰ <span id="sidebarBtnLabel">Hide</span>
+    </button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-topic-pill">Emerging</div>
+      <div class="sidebar-topic-name">Zero-Knowledge Proofs</div>
+    </div>
+    <div class="sidebar-body">
+
+      <div class="chapter-group">
+        <div class="chapter-label open" onclick="toggleChapter(this)">
+          Chapter 1 — Foundations <span class="chapter-toggle">▶</span>
+        </div>
+        <div class="chapter-lessons">
+          <a class="lesson-nav-item done" href="#">
+            <span class="nav-status done-icon">✓</span>
+            <span class="nav-lesson-name">What is a proof?</span>
+          </a>
+          <a class="lesson-nav-item done" href="#">
+            <span class="nav-status done-icon">✓</span>
+            <span class="nav-lesson-name">Interactive vs non-interactive</span>
+          </a>
+          <a class="lesson-nav-item active" href="#">
+            <span class="nav-status active-icon">▶</span>
+            <span class="nav-lesson-name">Completeness & soundness</span>
+          </a>
+          <a class="lesson-nav-item" href="#">
+            <span class="nav-status">○</span>
+            <span class="nav-lesson-name">The zero-knowledge property</span>
+          </a>
+          <a class="lesson-nav-item" href="#">
+            <span class="nav-status">○</span>
+            <span class="nav-lesson-name">The simulator argument</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="chapter-group">
+        <div class="chapter-label" onclick="toggleChapter(this)">
+          Chapter 2 — Arithmetic Circuits <span class="chapter-toggle">▶</span>
+        </div>
+        <div class="chapter-lessons" style="display:none">
+          <a class="lesson-nav-item" href="#">
+            <span class="nav-status">○</span>
+            <span class="nav-lesson-name">R1CS constraints</span>
+          </a>
+          <a class="lesson-nav-item" href="#">
+            <span class="nav-status">○</span>
+            <span class="nav-lesson-name">Witness generation</span>
+          </a>
+          <a class="lesson-nav-item" href="#">
+            <span class="nav-status">○</span>
+            <span class="nav-lesson-name">QAP construction</span>
+          </a>
+          <a class="lesson-nav-item" href="#">
+            <span class="nav-status">○</span>
+            <span class="nav-lesson-name">Polynomial commitments</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="chapter-group">
+        <div class="chapter-label" onclick="toggleChapter(this)">
+          Chapter 3 — SNARKs <span class="chapter-toggle">▶</span>
+        </div>
+        <div class="chapter-lessons" style="display:none">
+          <a class="lesson-nav-item" href="#">
+            <span class="nav-status">○</span>
+            <span class="nav-lesson-name">What is a SNARK?</span>
+          </a>
+          <a class="lesson-nav-item" href="#">
+            <span class="nav-status">○</span>
+            <span class="nav-lesson-name">Groth16 walkthrough</span>
+          </a>
+          <a class="lesson-nav-item" href="#">
+            <span class="nav-status">○</span>
+            <span class="nav-lesson-name">Trusted setup & toxic waste</span>
+          </a>
+          <a class="lesson-nav-item" href="#">
+            <span class="nav-status">○</span>
+            <span class="nav-lesson-name">PlonK & universal setups</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="chapter-group">
+        <div class="chapter-label" onclick="toggleChapter(this)">
+          Chapter 4 — STARKs <span class="chapter-toggle">▶</span>
+        </div>
+        <div class="chapter-lessons" style="display:none">
+          <a class="lesson-nav-item" href="#">
+            <span class="nav-status">○</span>
+            <span class="nav-lesson-name">FRI & polynomial IOPs</span>
+          </a>
+          <a class="lesson-nav-item" href="#">
+            <span class="nav-status">○</span>
+            <span class="nav-lesson-name">Transparency & post-quantum</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <article class="lesson-area">
+
+      <!-- META -->
+      <div class="lesson-meta">
+        <span class="lesson-chapter-badge">Chapter 1 — Foundations</span>
+        <span class="lesson-meta-sep">·</span>
+        <span class="lesson-num">Lesson 3 of 5</span>
+      </div>
+
+      <!-- TITLE -->
+      <h1 class="lesson-title">Completeness<br>& Soundness</h1>
+
+      <!-- INTRO -->
+      <p class="lesson-intro">Every cryptographic proof system rests on two properties. Understanding them precisely — not just vaguely — is the foundation everything else is built on.</p>
+
+      <!-- BODY -->
+      <div class="lesson-body">
+
+        <h2>The two pillars</h2>
+
+        <p>A proof system involves two parties: a <strong>prover</strong> who wants to convince someone of a statement, and a <strong>verifier</strong> who decides whether to believe them. For this to be meaningful, the system must satisfy two guarantees simultaneously.</p>
+
+        <p>Without both properties holding, the proof system breaks down — either honest provers get rejected for no reason, or dishonest provers can fabricate acceptance. Neither is acceptable.</p>
+
+        <div class="def-box">
+          <div class="def-box-label">Definition — Completeness</div>
+          <p>If a statement is <em>true</em> and the prover is <em>honest</em>, then an honest verifier will always accept the proof. A complete system never rejects a valid proof.</p>
+        </div>
+
+        <div class="def-box">
+          <div class="def-box-label">Definition — Soundness</div>
+          <p>If a statement is <em>false</em>, then no prover — even a computationally unbounded cheater — can convince an honest verifier to accept it, except with negligible probability <em>ε</em>.</p>
+        </div>
+
+        <h2>Formalising it</h2>
+
+        <p>Let <strong>L</strong> be a language — the set of all true statements. A prover <strong>P</strong> supplies a witness <strong>w</strong> alongside the statement <strong>x</strong>. The verifier <strong>V</strong> runs a verification algorithm and outputs accept or reject.</p>
+
+        <div class="code-block">
+          <div class="code-block-label">Formal definitions</div>
+          <pre><span class="cm">// Completeness — honest prover always accepted</span>
+<span class="kw">∀</span> x ∈ L, <span class="kw">∀</span> valid witness w:
+  Pr[ V(x, P(x, w)) = <span class="val">accept</span> ] = <span class="hl">1</span>
+
+<span class="cm">// Soundness — no cheating prover can fake it</span>
+<span class="kw">∀</span> x ∉ L, <span class="kw">∀</span> adversarial P*:
+  Pr[ V(x, P*(x)) = <span class="val">accept</span> ] ≤ <span class="hl">ε</span> <span class="cm">(negligible)</span></pre>
+        </div>
+
+        <p>The <em>soundness error</em> ε is the maximum probability a cheating prover can fool the verifier. In practice, we want this to be cryptographically negligible — something like 2⁻¹²⁸. If the protocol is run multiple times, repeated rounds can reduce ε exponentially.</p>
+
+        <h2>Statistical vs computational soundness</h2>
+
+        <p>There are two flavours of soundness, and they're not the same:</p>
+
+        <p><strong>Statistical soundness</strong> holds even against a prover with unlimited computation. The cheating probability is bounded by the information-theoretic structure of the protocol itself. This is the stronger guarantee.</p>
+
+        <p><strong>Computational soundness</strong> holds only against a prover bounded by polynomial time. A computationally unbounded adversary might break it. Most SNARKs in practice provide computational soundness based on hardness assumptions.</p>
+
+        <div class="note-box">
+          <div class="note-icon">→</div>
+          <p>STARKs aim for statistical soundness (and post-quantum security) by avoiding elliptic curve pairings. SNARKs like Groth16 achieve computational soundness — relying on the hardness of the discrete log problem. You'll see this tradeoff throughout the course.</p>
+        </div>
+
+        <h2>Why this matters for ZK</h2>
+
+        <p>In zero-knowledge proofs, we add a <em>third</em> property on top of completeness and soundness: that the proof reveals nothing beyond the truth of the statement. But before you can reason about what a proof <em>leaks</em>, you need to be crystal clear about what it <em>proves</em>.</p>
+
+        <p>Completeness and soundness define the semantics of the proof. The zero-knowledge property defines its privacy. Neither means anything without the other.</p>
+
+      </div>
+
+      <!-- QUIZ -->
+      <div class="quiz-section" id="quizSection">
+        <div class="quiz-header">
+          <div class="quiz-icon">⚡</div>
+          <div>
+            <div class="quiz-title">Check your understanding</div>
+            <div class="quiz-subtitle">2 questions · answers explained</div>
+          </div>
+        </div>
+
+        <!-- Q1 -->
+        <div class="quiz-card" id="q1">
+          <div class="quiz-q-num">Question 01 / 02</div>
+          <div class="quiz-question">Which property guarantees that a cheating prover cannot convince the verifier of a false statement?</div>
+          <div class="quiz-options" id="q1-options">
+            <button class="quiz-option" onclick="answer(this, 'q1', false)">
+              <span class="opt-letter">A</span>
+              <span class="opt-text">Completeness — it ensures all valid proofs are accepted</span>
+              <span class="quiz-result-icon">✗</span>
+            </button>
+            <button class="quiz-option" onclick="answer(this, 'q1', true)">
+              <span class="opt-letter">B</span>
+              <span class="opt-text">Soundness — it bounds the probability of accepting a false proof</span>
+              <span class="quiz-result-icon">✓</span>
+            </button>
+            <button class="quiz-option" onclick="answer(this, 'q1', false)">
+              <span class="opt-letter">C</span>
+              <span class="opt-text">Zero-knowledge — it ensures the verifier learns nothing</span>
+              <span class="quiz-result-icon">✗</span>
+            </button>
+            <button class="quiz-option" onclick="answer(this, 'q1', false)">
+              <span class="opt-letter">D</span>
+              <span class="opt-text">The witness — it is the secret the prover holds</span>
+              <span class="quiz-result-icon">✗</span>
+            </button>
+          </div>
+          <div class="quiz-explanation" id="q1-exp">
+            <strong>Correct.</strong> Soundness is the property that prevents forgery. Completeness is the mirror: it ensures honest provers are never wrongly rejected. The two work together — soundness without completeness would reject everyone; completeness without soundness would accept anyone.
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="quiz-card" id="q2">
+          <div class="quiz-q-num">Question 02 / 02</div>
+          <div class="quiz-question">A proof system has computational soundness. What does this mean?</div>
+          <div class="quiz-options" id="q2-options">
+            <button class="quiz-option" onclick="answer(this, 'q2', false)">
+              <span class="opt-letter">A</span>
+              <span class="opt-text">The prover needs a powerful computer to generate proofs</span>
+              <span class="quiz-result-icon">✗</span>
+            </button>
+            <button class="quiz-option" onclick="answer(this, 'q2', false)">
+              <span class="opt-letter">B</span>
+              <span class="opt-text">The verifier runs in constant time regardless of proof size</span>
+              <span class="quiz-result-icon">✗</span>
+            </button>
+            <button class="quiz-option" onclick="answer(this, 'q2', true)">
+              <span class="opt-letter">C</span>
+              <span class="opt-text">Soundness holds only against polynomial-time adversaries, not unbounded ones</span>
+              <span class="quiz-result-icon">✓</span>
+            </button>
+            <button class="quiz-option" onclick="answer(this, 'q2', false)">
+              <span class="opt-letter">D</span>
+              <span class="opt-text">The proof is compressed to a constant number of bytes</span>
+              <span class="quiz-result-icon">✗</span>
+            </button>
+          </div>
+          <div class="quiz-explanation" id="q2-exp">
+            <strong>Correct.</strong> Computational soundness is conditional — it relies on hardness assumptions (like discrete log). A computationally unbounded adversary could in theory break it. Statistical soundness, by contrast, holds unconditionally. STARKs target statistical soundness; most SNARKs settle for computational soundness in exchange for shorter proofs.
+          </div>
+        </div>
+
+        <!-- COMPLETE BANNER -->
+        <div class="complete-banner" id="completeBanner">
+          <div class="complete-banner-icon">✦</div>
+          <div class="complete-banner-text">
+            <h3>Lesson complete</h3>
+            <p>You got both questions right. Move on to the zero-knowledge property.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- LESSON FOOTER NAV -->
+      <div class="lesson-nav-footer">
+        <a href="#" class="nav-footer-btn">
+          <span class="nfb-label">← Previous</span>
+          <span class="nfb-title">Interactive vs non-interactive</span>
+        </a>
+        <a href="#" class="nav-footer-btn primary">
+          <span class="nfb-label">Next →</span>
+          <span class="nfb-title">The zero-knowledge property</span>
+        </a>
+      </div>
+
+    </article>
+  </main>
+</div>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+  });
+  document.querySelectorAll('a, button, .chapter-label, .lesson-nav-item').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+  });
+
+  // Scroll progress
+  window.addEventListener('scroll', () => {
+    const doc = document.documentElement;
+    const scrolled = doc.scrollTop / (doc.scrollHeight - doc.clientHeight);
+    document.getElementById('scrollFill').style.width = (scrolled * 100) + '%';
+  });
+
+  // Sidebar toggle
+  const sidebar = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+  const label = document.getElementById('sidebarBtnLabel');
+  let sidebarOpen = true;
+
+  document.getElementById('sidebarToggle').addEventListener('click', () => {
+    sidebarOpen = !sidebarOpen;
+    sidebar.classList.toggle('collapsed', !sidebarOpen);
+    main.classList.toggle('expanded', !sidebarOpen);
+    label.textContent = sidebarOpen ? 'Hide' : 'Show';
+  });
+
+  // Chapter toggles
+  function toggleChapter(label) {
+    const lessons = label.nextElementSibling;
+    const isOpen = label.classList.contains('open');
+    label.classList.toggle('open', !isOpen);
+    if (isOpen) {
+      lessons.style.display = 'none';
+    } else {
+      lessons.style.display = 'block';
+    }
+  }
+
+  // Quiz
+  const answered = { q1: false, q2: false };
+
+  function answer(btn, qid, isCorrect) {
+    if (answered[qid]) return;
+    answered[qid] = true;
+
+    const options = document.querySelectorAll(`#${qid}-options .quiz-option`);
+    const exp = document.getElementById(`${qid}-exp`);
+
+    options.forEach(opt => {
+      opt.classList.add('answered');
+      opt.style.pointerEvents = 'none';
+    });
+
+    if (isCorrect) {
+      btn.classList.add('correct');
+    } else {
+      btn.classList.add('incorrect');
+      // highlight correct
+      options.forEach(opt => {
+        if (opt !== btn) {
+          const resultIcon = opt.querySelector('.quiz-result-icon');
+          if (resultIcon && resultIcon.textContent === '✓') {
+            opt.classList.add('correct');
+          } else {
+            opt.classList.add('dimmed');
+          }
+        }
+      });
+    }
+
+    exp.classList.add('visible');
+
+    // check if both done
+    if (answered.q1 && answered.q2) {
+      setTimeout(() => {
+        document.getElementById('completeBanner').classList.add('show');
+        // update progress bar
+        document.getElementById('trackProgress').style.width = '37.5%';
+        document.getElementById('progressPct').textContent = '37%';
+      }, 600);
+    }
+  }
+</script>
+</body>
+</html>

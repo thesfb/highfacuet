@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero-Knowledge Proofs — HighFaucet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #0a0a0a;
+  --off-black: #0f0f0f;
+  --dark: #141414;
+  --card: #181818;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.15);
+  --yellow: #f5e642;
+  --yellow-bg: rgba(245,230,66,0.07);
+  --yellow-border: rgba(245,230,66,0.2);
+  --white: #f0ede6;
+  --muted: #5a5852;
+  --dim: #9e9b94;
+  --green: #42f5a8;
+  --purple: #b06bff;
+  --purple-bg: rgba(176,107,255,0.08);
+  --purple-border: rgba(176,107,255,0.2);
+  --orange: #ff8c42;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* CURSOR */
+.cursor {
+  position: fixed;
+  width: 10px; height: 10px;
+  background: var(--yellow);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.15s, height 0.15s;
+  mix-blend-mode: difference;
+}
+.cursor.big { width: 22px; height: 22px; }
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 52px;
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  z-index: 200;
+}
+
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--white);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+.nav-logo span { color: var(--yellow); }
+
+.nav-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.nav-center .crumb-active { color: var(--dim); }
+.nav-center .sep { color: var(--muted); }
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-pill {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  text-decoration: none;
+  transition: border-color 0.2s, color 0.2s;
+}
+.nav-pill:hover { border-color: var(--border-hover); color: var(--white); }
+
+.nav-start-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--yellow);
+  color: var(--black);
+  border: none;
+  padding: 8px 18px;
+  cursor: none;
+  text-decoration: none;
+  transition: transform 0.15s;
+}
+.nav-start-btn:hover { transform: translateY(-1px); }
+
+/* HERO */
+.hero {
+  padding: 120px 40px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  top: 0; right: -100px;
+  width: 700px; height: 600px;
+  background: radial-gradient(ellipse at 60% 30%, rgba(176,107,255,0.1) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 80px;
+  align-items: start;
+}
+
+.hero-left { animation: fadeUp 0.6s ease both; }
+
+.topic-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--purple);
+  background: var(--purple-bg);
+  border: 1px solid var(--purple-border);
+  padding: 5px 12px;
+  margin-bottom: 24px;
+}
+.topic-pill-dot {
+  width: 5px; height: 5px;
+  background: var(--purple);
+  border-radius: 50%;
+}
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(44px, 6vw, 80px);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  margin-bottom: 28px;
+}
+.hero-title .outline {
+  -webkit-text-stroke: 2px rgba(255,255,255,0.2);
+  color: transparent;
+}
+
+.hero-desc {
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--dim);
+  line-height: 1.8;
+  max-width: 520px;
+  margin-bottom: 40px;
+}
+
+.hero-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+.hero-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.meta-val {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+.meta-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hero-meta-sep { width: 1px; height: 36px; background: var(--border); }
+
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+/* PROGRESS CARD */
+.progress-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 32px;
+  animation: fadeUp 0.6s ease 0.15s both;
+  position: sticky;
+  top: 72px;
+}
+
+.pc-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.pc-ring-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.pc-ring {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+.pc-ring svg {
+  width: 72px; height: 72px;
+  transform: rotate(-90deg);
+}
+.pc-ring-bg { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 4; }
+.pc-ring-fill {
+  fill: none;
+  stroke: var(--yellow);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 188;
+  stroke-dashoffset: 141; /* 25% */
+  transition: stroke-dashoffset 1s ease;
+}
+.pc-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.pc-ring-info h4 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+.pc-ring-info p {
+  font-size: 12px;
+  color: var(--dim);
+  font-weight: 300;
+}
+
+.pc-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-bottom: 24px;
+}
+.pc-stat {
+  background: rgba(255,255,255,0.03);
+  padding: 14px 16px;
+}
+.pc-stat-val {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+}
+.pc-stat-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pc-continue-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: var(--yellow);
+  color: var(--black);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  cursor: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+  margin-bottom: 10px;
+}
+.pc-continue-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(245,230,66,0.25);
+}
+
+.pc-restart {
+  display: block;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.pc-restart:hover { color: var(--dim); }
+
+/* DIVIDER */
+.section-divider {
+  max-width: 1200px;
+  margin: 72px auto 0;
+  height: 1px;
+  background: var(--border);
+}
+
+/* CURRICULUM */
+.curriculum {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 40px 120px;
+}
+
+.curriculum-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 48px;
+}
+
+.curriculum-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: -0.03em;
+}
+
+.curriculum-summary {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* CHAPTER BLOCK */
+.chapter-block {
+  margin-bottom: 4px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: border-color 0.2s;
+  animation: fadeUp 0.5s ease both;
+}
+.chapter-block:nth-child(1) { animation-delay: 0.05s; }
+.chapter-block:nth-child(2) { animation-delay: 0.1s; }
+.chapter-block:nth-child(3) { animation-delay: 0.15s; }
+.chapter-block:nth-child(4) { animation-delay: 0.2s; }
+.chapter-block:hover { border-color: rgba(255,255,255,0.12); }
+
+.chapter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px;
+  cursor: none;
+  background: var(--off-black);
+  user-select: none;
+  transition: background 0.15s;
+}
+.chapter-head:hover { background: var(--dark); }
+.chapter-head.open { background: var(--dark); }
+
+.chapter-head-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.ch-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  flex-shrink: 0;
+  width: 28px;
+}
+
+.ch-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+
+.chapter-head-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.ch-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ch-progress-track {
+  width: 80px;
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.ch-progress-fill {
+  height: 100%;
+  background: var(--yellow);
+  border-radius: 1px;
+  transition: width 0.4s ease;
+}
+.ch-progress-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.ch-chevron {
+  color: var(--muted);
+  font-size: 12px;
+  transition: transform 0.25s;
+  flex-shrink: 0;
+}
+.chapter-head.open .ch-chevron { transform: rotate(180deg); }
+
+/* LESSONS LIST */
+.lessons-list {
+  border-top: 1px solid var(--border);
+  display: none;
+}
+.lessons-list.open { display: block; }
+
+.lesson-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 28px 16px 76px;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--white);
+  transition: background 0.15s;
+  position: relative;
+  cursor: none;
+}
+.lesson-row:last-child { border-bottom: none; }
+.lesson-row:hover { background: rgba(255,255,255,0.02); }
+.lesson-row.active { background: var(--yellow-bg); }
+.lesson-row.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--yellow);
+}
+
+.lr-status {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s;
+}
+.lr-status.done {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--black);
+  font-size: 10px;
+}
+.lr-status.active {
+  border-color: var(--yellow);
+  background: var(--yellow-bg);
+}
+.lesson-row:not(.done):not(.active):hover .lr-status {
+  border-color: rgba(255,255,255,0.25);
+}
+
+.lr-info { flex: 1; }
+.lr-title {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--white);
+  margin-bottom: 2px;
+  transition: color 0.15s;
+}
+.lesson-row.done .lr-title { color: rgba(240,237,230,0.4); }
+.lesson-row.active .lr-title { color: var(--yellow); }
+
+.lr-desc {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 300;
+}
+
+.lr-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.lr-duration {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.lr-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid;
+}
+.lr-badge.quiz { border-color: rgba(245,230,66,0.3); color: var(--yellow); }
+.lr-badge.locked { border-color: var(--border); color: var(--muted); }
+
+.lr-arrow {
+  color: var(--muted);
+  font-size: 12px;
+  transition: transform 0.2s, color 0.2s;
+}
+.lesson-row:hover .lr-arrow { transform: translateX(3px); color: var(--white); }
+.lesson-row.active .lr-arrow { color: var(--yellow); }
+
+/* WHAT YOU'LL LEARN */
+.outcomes-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px 80px;
+}
+
+.outcomes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-top: 32px;
+}
+
+.outcome-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  animation: fadeUp 0.5s ease both;
+}
+.outcome-card:nth-child(1) { animation-delay: 0.05s; }
+.outcome-card:nth-child(2) { animation-delay: 0.1s; }
+.outcome-card:nth-child(3) { animation-delay: 0.15s; }
+.outcome-card:nth-child(4) { animation-delay: 0.2s; }
+.outcome-card:nth-child(5) { animation-delay: 0.25s; }
+.outcome-card:nth-child(6) { animation-delay: 0.3s; }
+
+.outcome-icon {
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+.outcome-card h4 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+.outcome-card p {
+  font-size: 12px;
+  color: var(--dim);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* SECTION LABEL */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+.section-label::before {
+  content: '';
+  width: 20px;
+  height: 1px;
+  background: var(--muted);
+  display: block;
+}
+
+/* SOURCES */
+.sources-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px 120px;
+}
+
+.sources-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  margin-top: 32px;
+}
+
+.source-card {
+  background: var(--off-black);
+  border: 1px solid var(--border);
+  padding: 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s, background 0.2s;
+  text-decoration: none;
+  cursor: none;
+}
+.source-card:hover { border-color: var(--border-hover); background: var(--dark); }
+
+.source-type {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.source-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--white);
+  line-height: 1.3;
+}
+.source-author {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 300;
+}
+.source-arrow {
+  margin-top: auto;
+  font-size: 12px;
+  color: var(--muted);
+  transition: color 0.2s, transform 0.2s;
+}
+.source-card:hover .source-arrow { color: var(--yellow); transform: translateX(3px); }
+
+/* animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="highfaucet.html" class="nav-logo">high<span>faucet</span></a>
+  <div class="nav-center">
+    <span>Tracks</span>
+    <span class="sep">/</span>
+    <span class="crumb-active">Zero-Knowledge Proofs</span>
+  </div>
+  <div class="nav-right">
+    <a href="highfaucet.html" class="nav-pill">← All tracks</a>
+    <a href="highfaucet-lesson.html" class="nav-start-btn">Continue →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero" style="padding-top: 92px;">
+  <div class="hero-glow"></div>
+  <div class="hero-inner" style="max-width:1200px;margin:0 auto;padding:0 40px;">
+
+    <div class="hero-left">
+      <div class="topic-pill">
+        <div class="topic-pill-dot"></div>
+        Emerging · Cryptography
+      </div>
+
+      <h1 class="hero-title">
+        Zero-<br>
+        <span class="outline">Knowledge</span><br>
+        Proofs
+      </h1>
+
+      <p class="hero-desc">Understand how it's possible to prove you know something without revealing what you know. From first principles — through circuits, SNARKs, STARKs and real-world applications.</p>
+
+      <div class="hero-meta-row">
+        <div class="hero-meta-item">
+          <span class="meta-val">4</span>
+          <span class="meta-label">Chapters</span>
+        </div>
+        <div class="hero-meta-sep"></div>
+        <div class="hero-meta-item">
+          <span class="meta-val">17</span>
+          <span class="meta-label">Lessons</span>
+        </div>
+        <div class="hero-meta-sep"></div>
+        <div class="hero-meta-item">
+          <span class="meta-val">~6h</span>
+          <span class="meta-label">Est. time</span>
+        </div>
+        <div class="hero-meta-sep"></div>
+        <div class="hero-meta-item">
+          <span class="meta-val" style="color:var(--orange)">Advanced</span>
+          <span class="meta-label">Level</span>
+        </div>
+      </div>
+
+      <div class="hero-tags">
+        <span class="tag">Cryptography</span>
+        <span class="tag">SNARKs</span>
+        <span class="tag">STARKs</span>
+        <span class="tag">Circuits</span>
+        <span class="tag">Blockchain</span>
+        <span class="tag">Math</span>
+        <span class="tag">Privacy</span>
+      </div>
+    </div>
+
+    <!-- PROGRESS CARD -->
+    <div class="progress-card">
+      <div class="pc-label">Your progress</div>
+
+      <div class="pc-ring-wrap">
+        <div class="pc-ring">
+          <svg viewBox="0 0 72 72">
+            <circle class="pc-ring-bg" cx="36" cy="36" r="30"/>
+            <circle class="pc-ring-fill" id="ringFill" cx="36" cy="36" r="30"/>
+          </svg>
+          <div class="pc-ring-text">25%</div>
+        </div>
+        <div class="pc-ring-info">
+          <h4>In progress</h4>
+          <p>Chapter 1 of 4<br>Lesson 3 of 5</p>
+        </div>
+      </div>
+
+      <div class="pc-stats">
+        <div class="pc-stat">
+          <div class="pc-stat-val">2</div>
+          <div class="pc-stat-label">Done</div>
+        </div>
+        <div class="pc-stat">
+          <div class="pc-stat-val">15</div>
+          <div class="pc-stat-label">Remaining</div>
+        </div>
+        <div class="pc-stat">
+          <div class="pc-stat-val">100%</div>
+          <div class="pc-stat-label">Quiz score</div>
+        </div>
+        <div class="pc-stat">
+          <div class="pc-stat-val">~5h</div>
+          <div class="pc-stat-label">Left</div>
+        </div>
+      </div>
+
+      <a href="highfaucet-lesson.html" class="pc-continue-btn">Continue lesson →</a>
+      <a href="#" class="pc-restart" onclick="resetProgress(event)">Reset progress</a>
+    </div>
+
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- CURRICULUM -->
+<div class="curriculum">
+  <div class="curriculum-header">
+    <h2 class="curriculum-title">Curriculum</h2>
+    <div class="curriculum-summary">
+      4 chapters · 17 lessons · 8 quizzes
+    </div>
+  </div>
+
+  <!-- CH 1 -->
+  <div class="chapter-block">
+    <div class="chapter-head open" onclick="toggleChapter(this)">
+      <div class="chapter-head-left">
+        <span class="ch-num">01</span>
+        <span class="ch-title">Foundations</span>
+      </div>
+      <div class="chapter-head-right">
+        <div class="ch-progress-wrap">
+          <div class="ch-progress-track">
+            <div class="ch-progress-fill" style="width:40%"></div>
+          </div>
+          <span class="ch-progress-label">2 / 5</span>
+        </div>
+        <div class="ch-chevron">▼</div>
+      </div>
+    </div>
+    <div class="lessons-list open">
+      <a class="lesson-row done" href="highfaucet-lesson.html">
+        <div class="lr-status done">✓</div>
+        <div class="lr-info">
+          <div class="lr-title">What is a proof?</div>
+          <div class="lr-desc">Mathematical vs computational proofs. Why we need them in cryptography.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">12 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row done" href="highfaucet-lesson.html">
+        <div class="lr-status done">✓</div>
+        <div class="lr-info">
+          <div class="lr-title">Interactive vs non-interactive proofs</div>
+          <div class="lr-desc">The difference between Arthur-Merlin protocols and NIZK systems.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">18 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row active" href="highfaucet-lesson.html">
+        <div class="lr-status active">▶</div>
+        <div class="lr-info">
+          <div class="lr-title">Completeness & soundness</div>
+          <div class="lr-desc">The two fundamental properties every proof system must satisfy.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">15 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row" href="highfaucet-lesson.html">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">The zero-knowledge property</div>
+          <div class="lr-desc">What it means to reveal nothing. Simulators and indistinguishability.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">20 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row" href="highfaucet-lesson.html">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">The simulator argument</div>
+          <div class="lr-desc">Proving zero-knowledge rigorously via the simulation paradigm.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">22 min</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- CH 2 -->
+  <div class="chapter-block">
+    <div class="chapter-head" onclick="toggleChapter(this)">
+      <div class="chapter-head-left">
+        <span class="ch-num">02</span>
+        <span class="ch-title">Arithmetic Circuits</span>
+      </div>
+      <div class="chapter-head-right">
+        <div class="ch-progress-wrap">
+          <div class="ch-progress-track">
+            <div class="ch-progress-fill" style="width:0%"></div>
+          </div>
+          <span class="ch-progress-label">0 / 4</span>
+        </div>
+        <div class="ch-chevron">▼</div>
+      </div>
+    </div>
+    <div class="lessons-list">
+      <a class="lesson-row" href="#">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">R1CS constraints</div>
+          <div class="lr-desc">Rank-1 Constraint Systems — encoding computation as equations.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">25 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row" href="#">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">Witness generation</div>
+          <div class="lr-desc">What a witness is, how it satisfies a constraint system.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">18 min</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row" href="#">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">QAP construction</div>
+          <div class="lr-desc">Converting R1CS into a Quadratic Arithmetic Program over a field.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">30 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row" href="#">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">Polynomial commitments</div>
+          <div class="lr-desc">KZG, FRI, and how we commit to polynomials without revealing them.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">28 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- CH 3 -->
+  <div class="chapter-block">
+    <div class="chapter-head" onclick="toggleChapter(this)">
+      <div class="chapter-head-left">
+        <span class="ch-num">03</span>
+        <span class="ch-title">SNARKs</span>
+      </div>
+      <div class="chapter-head-right">
+        <div class="ch-progress-wrap">
+          <div class="ch-progress-track">
+            <div class="ch-progress-fill" style="width:0%"></div>
+          </div>
+          <span class="ch-progress-label">0 / 4</span>
+        </div>
+        <div class="ch-chevron">▼</div>
+      </div>
+    </div>
+    <div class="lessons-list">
+      <a class="lesson-row" href="#">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">What is a SNARK?</div>
+          <div class="lr-desc">Succinct, non-interactive arguments of knowledge. The properties that matter.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">16 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row" href="#">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">Groth16 walkthrough</div>
+          <div class="lr-desc">The most widely deployed SNARK. How it works, why it's efficient.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">35 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row" href="#">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">Trusted setup & toxic waste</div>
+          <div class="lr-desc">Why Groth16 needs a ceremony, and what happens if it goes wrong.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">20 min</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row" href="#">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">PlonK & universal setups</div>
+          <div class="lr-desc">Moving beyond circuit-specific setups. How PlonK changes the game.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">32 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- CH 4 -->
+  <div class="chapter-block">
+    <div class="chapter-head" onclick="toggleChapter(this)">
+      <div class="chapter-head-left">
+        <span class="ch-num">04</span>
+        <span class="ch-title">STARKs</span>
+      </div>
+      <div class="chapter-head-right">
+        <div class="ch-progress-wrap">
+          <div class="ch-progress-track">
+            <div class="ch-progress-fill" style="width:0%"></div>
+          </div>
+          <span class="ch-progress-label">0 / 4</span>
+        </div>
+        <div class="ch-chevron">▼</div>
+      </div>
+    </div>
+    <div class="lessons-list">
+      <a class="lesson-row" href="#">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">Why STARKs?</div>
+          <div class="lr-desc">No trusted setup. Post-quantum. What we trade for those guarantees.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">18 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row" href="#">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">FRI protocol</div>
+          <div class="lr-desc">Fast Reed-Solomon IOP — the engine behind most STARK systems.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">40 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row" href="#">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">AIR & execution traces</div>
+          <div class="lr-desc">Algebraic Intermediate Representation. How computations become traces.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">28 min</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+      <a class="lesson-row" href="#">
+        <div class="lr-status">○</div>
+        <div class="lr-info">
+          <div class="lr-title">Real-world STARK systems</div>
+          <div class="lr-desc">StarkWare, Polygon Miden, Risc Zero — how production systems use STARKs.</div>
+        </div>
+        <div class="lr-right">
+          <span class="lr-duration">22 min</span>
+          <span class="lr-badge quiz">Quiz</span>
+          <span class="lr-arrow">→</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<!-- WHAT YOU'LL LEARN -->
+<div class="outcomes-section">
+  <div class="section-label">What you'll be able to do</div>
+  <div class="outcomes-grid">
+    <div class="outcome-card">
+      <div class="outcome-icon">🔐</div>
+      <h4>Explain ZK proofs precisely</h4>
+      <p>Define completeness, soundness and zero-knowledge without hand-waving.</p>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-icon">⚙️</div>
+      <h4>Read SNARK/STARK papers</h4>
+      <p>Understand the notation and arguments in research-level cryptography papers.</p>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-icon">🔭</div>
+      <h4>Evaluate ZK systems</h4>
+      <p>Know what tradeoffs matter when comparing Groth16, PlonK, STARKs, and more.</p>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-icon">🧮</div>
+      <h4>Understand arithmetic circuits</h4>
+      <p>Trace computation through R1CS, QAP construction, and polynomial encodings.</p>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-icon">📐</div>
+      <h4>Reason about trusted setups</h4>
+      <p>Understand what a powers-of-tau ceremony is and why it matters for security.</p>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-icon">🌐</div>
+      <h4>Engage with the ecosystem</h4>
+      <p>Follow projects like StarkWare, Risc Zero, and Aztec with genuine understanding.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SOURCES -->
+<div class="sources-section">
+  <div class="section-label">Source material</div>
+  <div class="sources-grid">
+    <a class="source-card" href="#">
+      <div class="source-type">Book · Free</div>
+      <div class="source-name">Proofs, Arguments, and Zero-Knowledge</div>
+      <div class="source-author">Justin Thaler</div>
+      <div class="source-arrow">→</div>
+    </a>
+    <a class="source-card" href="#">
+      <div class="source-type">Course · Free</div>
+      <div class="source-name">ZKP MOOC — Spring 2023</div>
+      <div class="source-author">UC Berkeley / a16z crypto</div>
+      <div class="source-arrow">→</div>
+    </a>
+    <a class="source-card" href="#">
+      <div class="source-type">Paper</div>
+      <div class="source-name">Groth16: On the Size of Pairing-Based NIZKs</div>
+      <div class="source-author">Jens Groth, 2016</div>
+      <div class="source-arrow">→</div>
+    </a>
+    <a class="source-card" href="#">
+      <div class="source-type">Docs · Free</div>
+      <div class="source-name">STARKs from Scratch</div>
+      <div class="source-author">StarkWare</div>
+      <div class="source-arrow">→</div>
+    </a>
+  </div>
+</div>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+  });
+  document.querySelectorAll('a, button, .chapter-head, .lesson-row, .source-card').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+  });
+
+  // Chapter toggle
+  function toggleChapter(head) {
+    const list = head.nextElementSibling;
+    const isOpen = head.classList.contains('open');
+    head.classList.toggle('open', !isOpen);
+    list.classList.toggle('open', !isOpen);
+  }
+
+  // Reset progress (demo)
+  function resetProgress(e) {
+    e.preventDefault();
+    document.getElementById('ringFill').style.strokeDashoffset = '188';
+    document.querySelector('.pc-ring-text').textContent = '0%';
+    document.querySelector('.pc-ring-info h4').textContent = 'Not started';
+    document.querySelector('.pc-ring-info p').textContent = 'Begin chapter 1';
+    document.querySelectorAll('.pc-stat-val')[0].textContent = '0';
+    document.querySelectorAll('.pc-stat-val')[1].textContent = '17';
+  }
+
+  // Animate ring on load
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('ringFill').style.strokeDashoffset = '141';
+    }, 400);
+  });
+</script>
+</body>
+</html>
