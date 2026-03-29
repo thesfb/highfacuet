@@ -104,7 +104,6 @@ function isPhoneLayout() {
 
 function HomePage() {
   const featuredTrack = modules[0];
-  const previewLesson = featuredTrack.chapters[0].lessons[2];
 
   return (
     <div className="home-page">
@@ -131,9 +130,9 @@ function HomePage() {
           <a href="#topics" className="btn-primary interactive">
             Explore Tracks
           </a>
-          <a href="#preview" className="btn-ghost interactive">
-            See a lesson →
-          </a>
+          <Link to={`/tracks/${featuredTrack.slug}`} className="btn-ghost interactive">
+            Open track →
+          </Link>
         </div>
         <div className="hero-stats">
           <HeroStat number="40+" label="Topics" />
@@ -241,84 +240,6 @@ function HomePage() {
             title="Track progress"
             text="Move through the material in a structured way with clear progress and no distractions."
           />
-        </div>
-      </section>
-
-      <section className="preview-section" id="preview">
-        <div className="preview-header">
-          <div>
-            <div className="section-tag">Lesson Preview</div>
-            <h2 className="preview-title">
-              This is what
-              <br />
-              deep looks like.
-            </h2>
-          </div>
-        </div>
-        <div className="lesson-mockup">
-          <div className="lesson-sidebar">
-            <div className="lesson-topic-name">{featuredTrack.title}</div>
-            {featuredTrack.chapters.slice(0, 2).map((chapter) => (
-              <div key={chapter.title}>
-                <div className="lesson-chapter">Chapter — {chapter.title}</div>
-                {chapter.lessons.slice(0, chapter.title === "Foundations" ? 5 : 3).map((lesson) => (
-                  <div
-                    className={`lesson-item ${
-                      lesson.slug === previewLesson.slug
-                        ? "active"
-                        : lesson.title === "What is a proof?" ||
-                            lesson.title === "Interactive vs non-interactive proofs"
-                          ? "done"
-                          : ""
-                    }`}
-                    key={lesson.slug}
-                  >
-                    {lesson.title}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-          <div className="lesson-content">
-            <div className="lesson-breadcrumb">
-              {featuredTrack.shortTitle} → Chapter 1 → Lesson 3
-            </div>
-            <h2>{previewLesson.title}</h2>
-            <p>
-              A proof system is defined by two fundamental properties.
-              <strong> Completeness </strong>
-              guarantees that an honest prover can always convince an honest
-              verifier of a true statement.
-              <strong> Soundness </strong>
-              guarantees that no cheating prover can convince the verifier of a
-              false statement except with negligible probability.
-            </p>
-            <p>
-              Together, these properties form the backbone of any cryptographic
-              proof system. Without completeness, proofs would fail for
-              legitimate statements. Without soundness, an adversary could
-              fabricate proofs for lies.
-            </p>
-            <div className="lesson-code">
-              {`// Completeness: if x is true, honest proofs pass
-// Soundness: if x is false, cheating fails except negligibly`}
-            </div>
-            <div className="lesson-quiz-teaser">
-              <div>
-                <div className="quiz-label">Quick check</div>
-                <div className="quiz-q">
-                  Which property prevents a cheating prover from proving false
-                  statements?
-                </div>
-              </div>
-              <Link
-                className="quiz-btn interactive"
-                to={`/tracks/${featuredTrack.slug}/lessons/${previewLesson.slug}`}
-              >
-                Answer →
-              </Link>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -955,8 +876,8 @@ function HomeNav() {
           </a>
         </li>
         <li>
-          <a href="#preview" className="interactive">
-            Preview
+          <a href="#topics" className="interactive">
+            Library
           </a>
         </li>
         <li>
