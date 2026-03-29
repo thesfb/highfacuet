@@ -2477,7 +2477,19 @@ footer {
   }
 
   .hero-title {
-    font-size: clamp(42px, 18vw, 72px);
+    font-size: clamp(34px, 14vw, 56px);
+    line-height: 0.94;
+    max-width: 100%;
+  }
+
+  .home-page .hero-title .outline,
+  .home-page .hero-title .accent {
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  .home-page .hero-title .outline {
+    -webkit-text-stroke: 1.5px var(--white);
   }
 
   .track-page .hero-title {
