@@ -116,7 +116,10 @@ function HomePage() {
         <h1 className="hero-title">
           Learn
           <br />
-          <span className="outline">everything</span>
+          <span className="outline hero-outline-word">
+            <span className="hero-outline-fragment">every</span>
+            <span className="hero-outline-fragment">thing</span>
+          </span>
           <br />
           <span className="accent">deeply.</span>
         </h1>

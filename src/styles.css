@@ -373,6 +373,10 @@ nav,
   color: var(--yellow);
 }
 
+.hero-outline-fragment {
+  display: inline;
+}
+
 .hero-title .outline,
 .topics-title .outline,
 .free-title .outline,
@@ -2486,6 +2490,14 @@ footer {
   .home-page .hero-title .accent {
     display: inline-block;
     max-width: 100%;
+  }
+
+  .home-page .hero-outline-word {
+    line-height: 0.9;
+  }
+
+  .home-page .hero-outline-fragment {
+    display: block;
   }
 
   .home-page .hero-title .outline {
