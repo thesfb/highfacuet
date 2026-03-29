@@ -98,6 +98,10 @@ function App() {
   );
 }
 
+function isPhoneLayout() {
+  return typeof window !== "undefined" && window.matchMedia("(max-width: 860px)").matches;
+}
+
 function HomePage() {
   const featuredTrack = modules[0];
   const previewLesson = featuredTrack.chapters[0].lessons[2];
@@ -586,7 +590,7 @@ function LessonPage() {
     }
     setAnswers({});
     setOpenChapters(new Set([lessonContext.chapterIndex]));
-    setSidebarOpen(true);
+    setSidebarOpen(!isPhoneLayout());
   }, [trackSlug, lessonSlug, lessonContext]);
 
   useEffect(() => {
@@ -722,6 +726,14 @@ function LessonPage() {
             })}
           </div>
         </aside>
+
+        <button
+          aria-hidden={!sidebarOpen}
+          className={`sidebar-backdrop ${sidebarOpen ? "show" : ""}`}
+          onClick={() => setSidebarOpen(false)}
+          tabIndex={-1}
+          type="button"
+        ></button>
 
         <main className={`main ${sidebarOpen ? "" : "expanded"}`} id="main">
           <article className="lesson-area">
